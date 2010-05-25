@@ -16,17 +16,10 @@ object DemoLastFM extends Application {
   val ghostm = new User("ghost-m")
   println(ghostm.getInfo)
   val recentTracks = ghostm.getRecentTracks()
-  val tempNode = recentTracks.headOption
-  tempNode match {
-    case None => {println("No first element in getNumberOfRecentTracks")}
-    case Some(x) => {
-      val trackUrlOption = (x \ "url").text
-      println(trackUrlOption)
-    }
-  }
-  var tempTrack = new Track(artist="Joanna Newsom", track="Ribbon Bows")
-  var trackNode = tempTrack.getInfo(ghostm)
-  println(tempTrack.getInfo(ghostm))
-  val trackDurationValue = (trackNode \ "duration").text
-  println(trackDurationValue)
+  recentTracks foreach {(track) => println(track.artistName+" "+track.track+" "+track.userplaycount+" "+track.duration)}
+  var tempTrack = new Track(artistName="Joanna Newsom", track="Ribbon Bows", user=ghostm).init
+  println(tempTrack.userloved)
+  println(tempTrack.userplaycount)
+  println(Track.getInfo(artistName="Joanna Newsom", track="Ribbon Bows", user=ghostm))
+
 }

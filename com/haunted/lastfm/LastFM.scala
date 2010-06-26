@@ -1,6 +1,5 @@
 package com.haunted.lastfm
 import dispatch._
-import Http._
 import scala.collection.mutable.Map
 
 object LastFM{

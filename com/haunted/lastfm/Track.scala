@@ -6,6 +6,9 @@ import scala.xml._
 
 class Track(val artistName:String="", val track:String="", val mbid:String="", user:User=null) {
 	//mbid = musicbrainz id
+  val MinutesPerHour = 60.0
+  val SecondsPerMinute = 60.0
+  val MillisecondsPerSecond = 1000.0
 	var id = 0
 	var url = ""
 	var duration = 0
@@ -38,6 +41,26 @@ class Track(val artistName:String="", val track:String="", val mbid:String="", u
 		}		
 		this
 	}
+
+  override def toString:String = {
+    "Track info: "+artistName+" "+track+" "+userplaycount+" "+duration
+  }
+
+  def timeInMinutes:Double = {
+    duration / MillisecondsPerSecond / SecondsPerMinute
+  }
+
+  def timeInSeconds:Double = {
+    duration / MillisecondsPerSecond
+  }
+
+  def totalListeningTimeInMinutes:Double = {
+    userplaycount * timeInMinutes
+  }
+
+  def totalListeningTimeInSeconds:Double = {
+    userplaycount * timeInSeconds
+  }
 }
 
 object Track{

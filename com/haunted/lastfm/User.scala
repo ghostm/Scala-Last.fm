@@ -3,7 +3,6 @@ import dispatch._
 import Http._
 import scala.xml._
 import scala.collection.mutable.Map
-import scala.runtime
 import scala.collection.mutable.ArrayBuffer
 
 class User(var userId:String){
@@ -40,21 +39,40 @@ class User(var userId:String){
 	  User.getInfo(userId)
   }
   
-  def getTopArtists(timePeriod:String = User.OVERALL): NodeSeq={
-	  User.getTopArtists(userId, timePeriod)
+  def getTopArtists(timePeriod:String = User.OVERALL): ArrayBuffer[Artist]={
+	  var artistNodes = User.getTopArtists(userId, timePeriod)
+    var artists = new ArrayBuffer[Artist]
+    artistNodes foreach {(node) =>
+      val newArtist = new Artist()
+      newArtist.setValues(node)
+      artists+=(newArtist)
+    }
+    //println(artists)
+    return artists
+  }
+
+  def getArtistTracks(artistName:String, startTime:Int = -1, endTime:Int = -1, page:Int = -1): ArrayBuffer[Track]={
+	  var trackNodes = User.getArtistTracks(userId, artistName, startTime, endTime, page)
+    var tracks = new ArrayBuffer[Track]
+    trackNodes foreach {(node) =>
+      val artistString = (node \ "artist").text
+      val trackNameString = (node \ "name").text
+      tracks+=(new Track(artistName=artistString, track=trackNameString, user=this).init)
+    }
+    //println(tracks)
+    return tracks
   }
   
   def getRecentTracks(limit:Int = -1, page:Int = -1): ArrayBuffer[Track] = {
-	  var trackNodes = User.getRecentTracks(userId, limit, page)
-	  var tracks = new ArrayBuffer[Track]
-	  trackNodes foreach {(node) => 
-	   val artistString = (node \ "artist").text
-	   val trackNameString = (node \ "name").text
-	   tracks.+(new Track(artistName=artistString, track=trackNameString, user=this).init)
-	 	  
-	   }
-	   println(tracks)
-	   return tracks
+    var trackNodes = User.getRecentTracks(userId, limit, page)
+    var tracks = new ArrayBuffer[Track]
+    trackNodes foreach {(node) =>
+      val artistString = (node \ "artist").text
+      val trackNameString = (node \ "name").text
+      tracks+=(new Track(artistName=artistString, track=trackNameString, user=this).init)
+    }
+    //println(tracks)
+    return tracks
   }
   
   def getNumberOfRecentTracksPages(): Int = {
@@ -96,10 +114,10 @@ object User {
   }
   
   def getTopArtists(userId:String, timePeriod:String = OVERALL): NodeSeq={
-	val paramMap = Map[String, String]()
+	  val paramMap = Map[String, String]()
     paramMap += ("user" -> userId)
-    val getInfoUrl:String = LastFM.makeUrlRequest("user.getInfo", paramMap)
-    LastFM.http(getInfoUrl <> { _ \\ "user" })
+    val getInfoUrl:String = LastFM.makeUrlRequest("user.getTopArtists", paramMap)
+    LastFM.http(getInfoUrl <> { _ \\ "artist" })
   }
   
   def getRecentTracks(userId:String, limit:Int = -1, page:Int = -1): NodeSeq = {
@@ -112,6 +130,23 @@ object User {
       paramMap += ("page"->page.toString)
     }
     val getRecentTracksUrl:String = LastFM.makeUrlRequest("user.getRecentTracks", paramMap)
+    LastFM.http(getRecentTracksUrl <> { _ \\ "track" })
+  }
+
+  def getArtistTracks(userId:String, artistName:String, startTime:Int = -1, endTime:Int = -1, page:Int = -1): NodeSeq = {
+    val paramMap = Map[String, String]()
+    paramMap += ("user" -> userId)
+    paramMap += ("artist" -> artistName)
+    if(startTime >= 0){
+      paramMap += ("startTimestamp"->startTime.toString)
+    }
+    if(endTime >= 0){
+      paramMap += ("endTimestamp"->endTime.toString)
+    }
+    if(page >= 0){
+      paramMap += ("page"->page.toString)
+    }
+    val getRecentTracksUrl:String = LastFM.makeUrlRequest("user.getArtistTracks", paramMap)
     LastFM.http(getRecentTracksUrl <> { _ \\ "track" })
   }
 }
